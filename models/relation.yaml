@@ -1,0 +1,13 @@
+# ===================================
+#  Relation Behavior Config
+# ===================================
+
+mobileuser_installs:
+    label: MobileUser Installs
+    readOnly: true
+    view:
+        list: $/mohsin/mobile/models/install/columns.yaml
+        toolbarButtons: delete
+    manage:
+        title: MobileUser Installs
+        form: $/mohsin/mobile/models/install/fields.yaml
