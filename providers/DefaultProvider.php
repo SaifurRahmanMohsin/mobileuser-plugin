@@ -74,7 +74,7 @@ class DefaultProvider extends ProviderBase
         try {
 
           $user = Auth::authenticate($credentials, true);
-          $user -> mobile_user_installs() -> save($install);
+          $user -> mobileuser_installs() -> save($install);
 
            /*
             * Return the user record on successful login
