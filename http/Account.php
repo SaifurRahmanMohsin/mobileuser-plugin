@@ -20,7 +20,6 @@ class Account extends Controller
         $loginProviderAlias = Settings::get('provider', 'default');
         $loginClass = ProviderManager::instance()->findByAlias($loginProviderAlias)->class;
         $loginManager = new $loginClass();
-
         return $loginManager -> signin();
     }
 
@@ -29,7 +28,6 @@ class Account extends Controller
         $loginProviderAlias = Settings::get('provider', 'default');
         $loginClass = ProviderManager::instance()->findByAlias($loginProviderAlias)->class;
         $loginManager = new $loginClass();
-
         return $loginManager -> register();
     }
 

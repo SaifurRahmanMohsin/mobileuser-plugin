@@ -14,7 +14,12 @@
     'installs' => [
         'unregistered' => 'Unregistered'
     ],
-    'signin' => [
-        'invalid_return' => 'The signin method of your login provider must return an User object.'
+    'variants' => [
+        'allow_registration_label' => 'Disable Registration?',
+        'allow_registration_comment' => 'When checked, user registration for this variant through the API is disabled.',
+        'registration_disabled' => 'Registration is disabled for this package.'
+    ],
+    'users' => [
+        'mobileuser_installs_label' => 'Mobile User Installs'
     ]
 ];

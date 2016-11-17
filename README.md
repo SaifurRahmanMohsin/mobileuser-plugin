@@ -28,11 +28,11 @@ Most of the [RainLab User Documentation](https://octobercms.com/plugin/rainlab-u
 ### Client-side Integration ###
 
 **Note:** Make sure you have finished the client side integration for the mobile plugin first. Any route calls to this plugin’s nodes MUST happen AFTER the **installs** route request of the mobile plugin. Otherwise, an error may be thrown.
-On the mobile app, you will have to make a call to the backend using the REST API that has been provided. RIght now, the API works like this:
+On the mobile app, you will have to make a call to the backend using the REST API that has been provided. Right now, the API works like this:
 
 #### POST /account/signin ####
 
-**Resource URL:** <your-website-url>/api/v1/account/signin
+**Resource URL:** [/api/v1/account/signin](/api/v1/account/signin) [![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/997ae8398f934757e196)
 
  | Parameters | Description
 ------------- | -------------
@@ -43,7 +43,7 @@ password | The password for the user attempting to sign in.
 
 #### POST /account/register ####
 
-**Resource URL:** <your-website-url>/api/v1/account/register
+**Resource URL:** [/api/v1/account/register](/api/v1/account/register) [![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/997ae8398f934757e196)
 
  | Parameters | Description
 ------------- | -------------

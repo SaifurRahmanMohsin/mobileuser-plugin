@@ -1,10 +1,12 @@
 <?php namespace Mohsin\User\Providers;
 
 use Mail;
+use Lang;
 use Auth;
 use Event;
 use Validator;
 use Cms\Classes\Page;
+use ValidationException;
 use October\Rain\Auth\AuthException;
 use Mohsin\User\Models\Settings;
 use Mohsin\Mobile\Models\Install;
@@ -31,20 +33,15 @@ class DefaultProvider extends ProviderBase
      */
     public function signin()
     {
-        $instance_id = post('instance_id');
-        $package = post('package');
-
-        if(($install = Install::where('instance_id', '=', $instance_id) -> first()) == null)
-          return response()->json('invalid-instance', 400);
-
-        if(($variant = Variant::where('package', '=', $package) -> first()) == null)
-            return response()->json('invalid-package', 400);
-
         /*
          * Validate input
          */
         $data = post();
         $rules = [];
+
+        $rules['instance_id'] = 'required|max:16|string|exists:mohsin_mobile_installs,instance_id';
+
+        $rules['package'] = 'required|regex:/^[a-z0-9]*(\.[a-z0-9]+)+[0-9a-z]$/|exists:mohsin_mobile_variants,package';
 
         $rules['login'] = $this->loginAttribute() == UserSettings::LOGIN_USERNAME
             ? 'required|between:2,255'
@@ -72,6 +69,8 @@ class DefaultProvider extends ProviderBase
         Event::fire('tempestronics.user.beforeAuthenticate', [$this, $credentials]);
 
         try {
+
+          $install = Install::where('instance_id', '=', array_get($data, 'instance_id')) -> first();
 
           $user = Auth::authenticate($credentials, true);
           $user -> mobileuser_installs() -> save($install);
@@ -107,15 +106,28 @@ class DefaultProvider extends ProviderBase
             }
 
             $rules = [
-                'email'    => 'required|email|between:6,255',
-                'password' => 'required|between:4,255'
+                'email'       => 'required|email|between:6,255',
+                'password'    => 'required|between:4,255',
+                'instance_id' => 'required|max:16|string|exists:mohsin_mobile_installs,instance_id',
+                'package'     => 'required|regex:/^[a-z0-9]*(\.[a-z0-9]+)+[0-9a-z]$/|exists:mohsin_mobile_variants|registration_enabled'
             ];
 
             if ($this->loginAttribute() == UserSettings::LOGIN_USERNAME) {
                 $rules['username'] = 'required|between:2,255';
             }
 
+            Validator::extend('registration_enabled', function ($attribute, $value, $parameters, $validator)
+            {
+                if($variant = Variant::where('package', '=', $value) -> first()) {
+                  if($variant -> disable_registration)
+                    throw new ValidationException(['package' => trans('mohsin.user::lang.variants.registration_disabled')]);
+                  return true;
+                }
+                return false;
+            });
+
             $validation = Validator::make($data, $rules);
+
             if ($validation->fails()) {
                 return response()->json($validation->messages()->first(), 400);
             }
@@ -141,6 +153,9 @@ class DefaultProvider extends ProviderBase
              return response()->json($user, 200);
         }
         catch (ModelException $ex) {
+            return response()->json($ex->getMessage(), 400);
+        }
+        catch (ValidationException $ex) {
             return response()->json($ex->getMessage(), 400);
         }
         catch (Exception $ex) {

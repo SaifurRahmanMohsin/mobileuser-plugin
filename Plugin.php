@@ -7,8 +7,10 @@ use System\Classes\PluginBase;
 use Mohsin\User\Classes\ProviderManager;
 use RainLab\User\Models\User as UserModel;
 use Mohsin\Mobile\Models\Install as InstallModel;
+use Mohsin\Mobile\Models\Variant as VariantModel;
 use Mohsin\User\Models\Settings as SettingsModel;
 use RainLab\User\Controllers\Users as UsersController;
+use Mohsin\Mobile\Controllers\Apps as AppsController;
 use Mohsin\Mobile\Controllers\Installs as InstallsController;
 
 /**
@@ -54,7 +56,7 @@ class Plugin extends PluginBase
 
             $list->addColumns([
                 'user' => [
-                    'label' => 'User',
+                    'label' => 'rainlab.user::lang.plugin.name',
                     'relation' => 'user',
                     'valueFrom' => 'id',
                     'default' => Lang::get('mohsin.user::lang.installs.unregistered')
@@ -80,13 +82,42 @@ class Plugin extends PluginBase
 
             $form->addTabFields([
                 'mobileuser_installs' => [
-                    'label' => 'Mobile User Installs',
+                    'label' => 'mohsin.user::lang.users.mobileuser_installs_label',
                     'tab' => 'Mobile',
                     'type' => 'partial',
                     'path' => '$/mohsin/user/assets/partials/_field_mobileuser_installs.htm',
                   ],
 
               ]);
+        });
+
+        AppsController::extendListColumns(function($list, $model){
+            if (!$model instanceof VariantModel)
+                return;
+
+            $list->addColumns([
+                'disable_registration' => [
+                    'label' => 'mohsin.user::lang.variants.allow_registration_label',
+                    'type' => 'switch'
+                ]
+            ]);
+
+        });
+
+        AppsController::extendFormFields(function($form, $model, $context) {
+          if(!$model instanceof VariantModel)
+              return;
+
+          $form->getField('is_maintenance')->span = 'left';
+
+          $form->addFields([
+              'disable_registration' => [
+                  'label' => 'mohsin.user::lang.variants.allow_registration_label',
+                  'comment' => 'mohsin.user::lang.variants.allow_registration_comment',
+                  'type' => 'checkbox',
+                  'span' => 'right'
+                ],
+            ]);
         });
 
         Event::listen('backend.form.extendFields', function ($form) {
@@ -118,26 +149,6 @@ class Plugin extends PluginBase
         return [
             'mohsin.user.access_users' => ['tab' => 'Mobile', 'label' => 'rainlab.user::lang.plugin.access_users'],
             'mohsin.user.access_settings' => ['tab' => 'Mobile', 'label' => 'rainlab.user::lang.plugin.access_settings']
-        ];
-    }
-
-    /**
-     * Registers back-end navigation items for this plugin.
-     *
-     * @return array
-     */
-    public function registerNavigation()
-    {
-        return []; // Remove this line to activate
-
-        return [
-            'user' => [
-                'label'       => 'User',
-                'url'         => Backend::url('mohsin/user/mycontroller'),
-                'icon'        => 'icon-leaf',
-                'permissions' => ['mohsin.user.*'],
-                'order'       => 500,
-            ],
         ];
     }
 
