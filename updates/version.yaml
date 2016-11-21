@@ -6,3 +6,4 @@
 1.0.3:
     - App variants can now disable user registrations.
     - variants_add_disable_registration.php
+1.0.4: Custom login providers can now define extra fields

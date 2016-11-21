@@ -121,21 +121,17 @@ class Plugin extends PluginBase
         });
 
         Event::listen('backend.form.extendFields', function ($form) {
+          
            if (!$form->model instanceof SettingsModel)
                 return;
 
-           $value = $form->getField('provider')->value;
-
-           if(!is_null($value))
-            {
-                $provider = ProviderManager::instance()->listProviders(true)->get($value)->object;
-                if(method_exists($provider,'extraFields'))
-                {
-                   $extras = $provider->extraFields();
-                   $form->addTabFields($extras);
-                }
-            }
-
+            $providers = ProviderManager::instance()->listProviderObjects();
+            foreach($providers as $provider)
+              {
+                  $config = $provider -> getFieldConfig();
+                  if(!is_null($config))
+                      $form->addFields($config);
+              }
         });
     }
 
@@ -180,6 +176,8 @@ class Plugin extends PluginBase
      */
     public function registerMobileLoginProviders()
     {
+        // Note that the DefaultProvider does not need Provider suffix
+        //but it's there due to PHP class naming restriction to use the reserved Default keyword.
         return [
             'Mohsin\User\Providers\DefaultProvider' => 'default'
         ];

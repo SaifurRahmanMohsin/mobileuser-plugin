@@ -1,6 +1,8 @@
 <?php namespace Mohsin\User\Classes;
 
 use File;
+use Yaml;
+use Event;
 use Response;
 use Cms\Classes\Theme;
 use Cms\Classes\Partial;
