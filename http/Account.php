@@ -30,5 +30,4 @@ class Account extends Controller
         $loginManager = new $loginClass();
         return $loginManager -> register();
     }
-
 }

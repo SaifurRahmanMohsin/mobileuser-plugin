@@ -61,12 +61,14 @@ class ProviderManager
         $plugins = $this->pluginManager->getPlugins();
 
         foreach ($plugins as $id => $plugin) {
-            if (!method_exists($plugin, 'registerMobileLoginProviders'))
+            if (!method_exists($plugin, 'registerMobileLoginProviders')) {
                 continue;
+            }
 
             $providers = $plugin->registerMobileLoginProviders();
-            if (!is_array($providers))
+            if (!is_array($providers)) {
                 continue;
+            }
 
             $this->registerProviders($id, $providers);
         }
@@ -97,8 +99,9 @@ class ProviderManager
      */
     public function registerProviders($owner, array $classes)
     {
-        if (!$this->providers)
+        if (!$this->providers) {
             $this->providers = [];
+        }
 
         foreach ($classes as $class => $alias) {
             $provider = (object)[
@@ -131,8 +134,9 @@ class ProviderManager
          */
         $collection = [];
         foreach ($this->providers as $provider) {
-            if (!class_exists($provider->class))
+            if (!class_exists($provider->class)) {
                 continue;
+            }
 
             $providerObj = new $provider->class;
             $providerDetails = $providerObj->providerDetails();
@@ -170,10 +174,10 @@ class ProviderManager
     public function findByAlias($alias)
     {
         $providers = $this->listProviders(false);
-        if (!isset($providers[$alias]))
+        if (!isset($providers[$alias])) {
             return false;
+        }
 
         return $providers[$alias];
     }
-
 }

@@ -4,21 +4,18 @@ use Lang;
 use Event;
 use Backend;
 use System\Classes\PluginBase;
+use System\Classes\PluginManager;
 use Mohsin\User\Classes\ProviderManager;
 use RainLab\User\Models\User as UserModel;
-use Mohsin\Mobile\Models\Install as InstallModel;
-use Mohsin\Mobile\Models\Variant as VariantModel;
 use Mohsin\User\Models\Settings as SettingsModel;
 use RainLab\User\Controllers\Users as UsersController;
-use Mohsin\Mobile\Controllers\Apps as AppsController;
-use Mohsin\Mobile\Controllers\Installs as InstallsController;
 
 /**
  * User Plugin Information File
  */
 class Plugin extends PluginBase
 {
-    public $require = ['Mohsin.Mobile', 'RainLab.User'];
+    public $require = ['Mohsin.Rest', 'RainLab.User'];
 
     /**
      * Returns information about this plugin.
@@ -30,7 +27,7 @@ class Plugin extends PluginBase
         return [
             'name'        => 'mohsin.user::lang.plugin.name',
             'description' => 'mohsin.user::lang.plugin.description',
-            'author'      => 'Mohsin',
+            'author'      => 'Saifur Rahman Mohsin',
             'icon'        => 'icon-user'
         ];
     }
@@ -42,96 +39,57 @@ class Plugin extends PluginBase
      */
     public function boot()
     {
-        UserModel::extend(function($model){
-            $model -> hasMany['mobileuser_installs'] = ['Mohsin\Mobile\Models\Install'];
-        });
+        if (PluginManager::instance()->exists('Mohsin.Install')) {
+            UserModel::extend(function ($model) {
+                $model->hasMany['mobileuser_installs'] = ['Mohsin\Mobile\Models\Install'];
+            });
 
-        InstallModel::extend(function($model){
-            $model -> belongsTo['user'] = ['RainLab\User\Models\User'];
-        });
+            UsersController::extend(function ($controller) {
+                $controller->addCss('/plugins/mohsin/user/assets/css/custom.css');
 
-        InstallsController::extendListColumns(function($list, $model){
-            if (!$model instanceof InstallModel)
-                return;
+                if (!$controller->isClassExtendedWith('Backend.Behaviors.RelationController')) {
+                    $controller->implement[] = 'Backend.Behaviors.RelationController';
+                }
 
-            $list->addColumns([
-                'user' => [
-                    'label' => 'rainlab.user::lang.plugin.name',
-                    'relation' => 'user',
-                    'valueFrom' => 'id',
-                    'default' => Lang::get('mohsin.user::lang.installs.unregistered')
-                ]
-            ]);
+                if (!isset($controller->relationConfig)) {
+                    $controller->addDynamicProperty('relationConfig');
+                }
 
-        });
+                $controller->relationConfig = $controller->mergeConfig(
+                    $controller->relationConfig,
+                    '$/mohsin/user/models/relation.yaml'
+                );
+            });
 
-        UsersController::extend(function($controller){
-            $controller->addCss('/plugins/mohsin/user/assets/css/custom.css');
-
-            if(!isset($controller->implement['Backend.Behaviors.RelationController']))
-                $controller->implement[] = 'Backend.Behaviors.RelationController';
-            $controller->relationConfig  =  '$/mohsin/user/models/relation.yaml';
-        });
-
-        UsersController::extendFormFields(function($form, $model, $context){
-            if(!$model instanceof UserModel)
-                return;
-
-            if(!$model->exists)
-              return;
-
-            $form->addTabFields([
-                'mobileuser_installs' => [
-                    'label' => 'mohsin.user::lang.users.mobileuser_installs_label',
-                    'tab' => 'Mobile',
-                    'type' => 'partial',
-                    'path' => '$/mohsin/user/assets/partials/_field_mobileuser_installs.htm',
-                  ],
-
-              ]);
-        });
-
-        AppsController::extendListColumns(function($list, $model){
-            if (!$model instanceof VariantModel)
-                return;
-
-            $list->addColumns([
-                'disable_registration' => [
-                    'label' => 'mohsin.user::lang.variants.allow_registration_label',
-                    'type' => 'switch'
-                ]
-            ]);
-
-        });
-
-        AppsController::extendFormFields(function($form, $model, $context) {
-          if(!$model instanceof VariantModel)
-              return;
-
-          $form->getField('is_maintenance')->span = 'left';
-
-          $form->addFields([
-              'disable_registration' => [
-                  'label' => 'mohsin.user::lang.variants.allow_registration_label',
-                  'comment' => 'mohsin.user::lang.variants.allow_registration_comment',
-                  'type' => 'checkbox',
-                  'span' => 'right'
-                ],
-            ]);
-        });
+            UsersController::extendFormFields(function ($form, $model, $context) {
+                if (!$model instanceof UserModel) {
+                    return;
+                }
+                if (!$model->exists) {
+                    return;
+                }
+                $form->addTabFields([
+                    'mobileuser_installs' => [
+                        'label' => 'mohsin.user::lang.users.mobileuser_installs_label',
+                        'tab' => 'Mobile',
+                        'type' => 'partial',
+                        'path' => '$/mohsin/user/assets/partials/_field_mobileuser_installs.htm',
+                      ],
+                  ]);
+            });
+        }
 
         Event::listen('backend.form.extendFields', function ($form) {
-          
-           if (!$form->model instanceof SettingsModel)
+            if (!$form->model instanceof SettingsModel) {
                 return;
-
+            }
             $providers = ProviderManager::instance()->listProviderObjects();
-            foreach($providers as $provider)
-              {
-                  $config = $provider -> getFieldConfig();
-                  if(!is_null($config))
-                      $form->addFields($config);
-              }
+            foreach ($providers as $provider) {
+                $config = $provider -> getFieldConfig();
+                if (!is_null($config)) {
+                    $form->addFields($config);
+                }
+            }
         });
     }
 
@@ -169,6 +127,25 @@ class Plugin extends PluginBase
     }
 
     /**
+     * Registers API nodes exposed by this plugin.
+     *
+     * @return array
+     */
+    public function registerNodes()
+    {
+        return [
+            'account/signin' => [
+                'controller' => 'Mohsin\User\Http\Account@signin',
+                'action'     => 'store'
+            ],
+            'account/register' => [
+                'controller' => 'Mohsin\User\Http\Account@register',
+                'action'     => 'store'
+            ]
+        ];
+    }
+
+    /**
      * Registers any mobile login providers implemented in this plugin.
      * The providers must be returned in the following format:
      * ['className1' => 'alias'],
@@ -182,5 +159,4 @@ class Plugin extends PluginBase
             'Mohsin\User\Providers\DefaultProvider' => 'default'
         ];
     }
-
 }

@@ -20,21 +20,19 @@ abstract class ProviderBase
     /**
      * Constructor
      */
-    function __construct()
+    public function __construct()
     {
         $extraFieldsConfig = $this->guessConfigPathFrom($this) . '/fields.yaml';
-        if (File::exists($extraFieldsConfig))
-        {
+        if (File::exists($extraFieldsConfig)) {
             $config = Yaml::parse(File::get($extraFieldsConfig));
-            foreach($config as $key => $value)
-             {
+            foreach ($config as $key => $value) {
                  $config[$key]['trigger'] = [
                      'action' => 'show',
                      'field' => 'provider',
                      'condition' => 'value[accountkit]'
                    ];
-             }
-             $this -> fieldConfig = $config;
+            }
+            $this->fieldConfig = $config;
         }
     }
 
@@ -49,8 +47,7 @@ abstract class ProviderBase
 
     /**
      * Returns information about the login provider
-     * Must return array:
-     *
+     * Must return array, Example:
      * [
      *      'name'        => 'AccountKit',
      *      'description' => 'Facebook AccountKit Mobile Login provider.'

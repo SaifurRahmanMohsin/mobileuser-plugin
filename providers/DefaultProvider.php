@@ -3,18 +3,20 @@
 use Mail;
 use Lang;
 use Auth;
+use File;
 use Event;
 use Validator;
 use Cms\Classes\Page;
 use ValidationException;
-use October\Rain\Auth\AuthException;
 use Mohsin\User\Models\Settings;
-use Mohsin\Mobile\Models\Install;
-use Mohsin\Mobile\Models\Variant;
-use October\Rain\Database\ModelException;
+use October\Rain\Auth\AuthException;
 use Mohsin\User\Classes\ProviderBase;
+use October\Rain\Database\ModelException;
 use RainLab\User\Models\Settings as UserSettings;
 
+/*
+ * Default Login Provider that works with RainLab.User
+ */
 class DefaultProvider extends ProviderBase
 {
     /**
@@ -24,7 +26,7 @@ class DefaultProvider extends ProviderBase
     {
         return [
             'name'        => 'Default Provider',
-            'description' => 'The default login provider'
+            'description' => 'The default login provider that works with RainLab\'s User Plugin'
         ];
     }
 
@@ -39,14 +41,10 @@ class DefaultProvider extends ProviderBase
         $data = post();
         $rules = [];
 
-        $rules['instance_id'] = 'required|max:16|string|exists:mohsin_mobile_installs,instance_id';
-
-        $rules['package'] = 'required|regex:/^[a-z0-9]*(\.[a-z0-9]+)+[0-9a-z]$/|exists:mohsin_mobile_variants,package';
-
+        // $rules['package'] = 'required|regex:/^[a-z0-9]*(\.[a-z0-9]+)+[0-9a-z]$/|exists:mohsin_mobile_variants,package';
         $rules['login'] = $this->loginAttribute() == UserSettings::LOGIN_USERNAME
             ? 'required|between:2,255'
             : 'required|email|between:6,255';
-
         $rules['password'] = 'required|between:4,255';
 
         if (!array_key_exists('login', $data)) {
@@ -66,22 +64,17 @@ class DefaultProvider extends ProviderBase
             'password' => array_get($data, 'password')
         ];
 
-        Event::fire('tempestronics.user.beforeAuthenticate', [$this, $credentials]);
+        Event::fire('mohsin.user.beforeAuthenticate', [$this, $credentials]);
 
         try {
-
-          $install = Install::where('instance_id', '=', array_get($data, 'instance_id')) -> first();
-
-          $user = Auth::authenticate($credentials, true);
-          $user -> mobileuser_installs() -> save($install);
-
-           /*
-            * Return the user record on successful login
-            */
-            return response()->json($user, 200);
-        } catch(AuthException $ex) {
+            $user = Auth::authenticate($credentials, true)->load('avatar');
+            $userArray = $user->toArray();
+            $userArray['avatar'] = $user->avatar ? File::localToPublic($user->avatar->getLocalPath()) : null;
+            Event::fire('mohsin.user.afterAuthenticate', [$this, $user]);
+            return response()->json($userArray, 200);
+        } catch (AuthException $ex) {
             return response()->json($ex->getMessage(), 400);
-        } catch(Exception $ex) {
+        } catch (Exception $ex) {
             return response()->json($ex->getMessage(), 400);
         }
     }
@@ -107,24 +100,26 @@ class DefaultProvider extends ProviderBase
 
             $rules = [
                 'email'       => 'required|email|between:6,255',
-                'password'    => 'required|between:4,255',
-                'instance_id' => 'required|max:16|string|exists:mohsin_mobile_installs,instance_id',
-                'package'     => 'required|regex:/^[a-z0-9]*(\.[a-z0-9]+)+[0-9a-z]$/|exists:mohsin_mobile_variants|registration_enabled'
+                'password'    => 'required|between:4,255'
             ];
+
+            // $rules['instance_id'] = 'required|max:16|string|exists:mohsin_mobile_installs,instance_id';
+
+            // $rules['package'] = 'required|regex:/^[a-z0-9]*(\.[a-z0-9]+)+[0-9a-z]$/|exists:mohsin_mobile_variants|registration_enabled';
 
             if ($this->loginAttribute() == UserSettings::LOGIN_USERNAME) {
                 $rules['username'] = 'required|between:2,255';
             }
 
-            Validator::extend('registration_enabled', function ($attribute, $value, $parameters, $validator)
-            {
-                if($variant = Variant::where('package', '=', $value) -> first()) {
-                  if($variant -> disable_registration)
-                    throw new ValidationException(['package' => trans('mohsin.user::lang.variants.registration_disabled')]);
-                  return true;
-                }
-                return false;
-            });
+            // Validator::extend('registration_enabled', function ($attribute, $value, $parameters, $validator) {
+            //     if ($variant = Variant::where('package', '=', $value) -> first()) {
+            //         if ($variant -> disable_registration) {
+            //             throw new ValidationException(['package' => trans('mohsin.user::lang.variants.registration_disabled')]);
+            //         }
+            //         return true;
+            //     }
+            //     return false;
+            // });
 
             $validation = Validator::make($data, $rules);
 
@@ -177,9 +172,7 @@ class DefaultProvider extends ProviderBase
     protected function sendActivationEmail($user)
     {
         $code = implode('!', [$user->id, $user->getActivationCode()]);
-
         $page = Settings::get('activation_page', '404');
-
         $link = Page::url($page) . '/' . $code;
 
         $data = [
@@ -188,7 +181,7 @@ class DefaultProvider extends ProviderBase
             'code' => $code
         ];
 
-        Mail::send('rainlab.user::mail.activate', $data, function($message) use ($user) {
+        Mail::send('rainlab.user::mail.activate', $data, function ($message) use ($user) {
             $message->to($user->email, $user->name);
         });
     }
