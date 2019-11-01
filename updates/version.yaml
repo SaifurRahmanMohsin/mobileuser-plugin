@@ -3,3 +3,4 @@
 1.0.3: Stub
 1.0.4: Custom login providers can now define extra fields
 1.0.5: Removed Mobile plugin dependency, works independently now.
+1.0.6: Added frontend and backend user model selection.

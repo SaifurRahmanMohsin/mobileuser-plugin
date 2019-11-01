@@ -2,7 +2,6 @@
 
 use Mail;
 use Lang;
-use Auth;
 use File;
 use Event;
 use Validator;
@@ -12,7 +11,6 @@ use Mohsin\User\Models\Settings;
 use October\Rain\Auth\AuthException;
 use Mohsin\User\Classes\ProviderBase;
 use October\Rain\Database\ModelException;
-use RainLab\User\Models\Settings as UserSettings;
 
 /*
  * Default Login Provider that works with RainLab.User
@@ -42,7 +40,7 @@ class DefaultProvider extends ProviderBase
         $rules = [];
 
         // $rules['package'] = 'required|regex:/^[a-z0-9]*(\.[a-z0-9]+)+[0-9a-z]$/|exists:mohsin_mobile_variants,package';
-        $rules['login'] = $this->loginAttribute() == UserSettings::LOGIN_USERNAME
+        $rules['login'] = $this->loginAttribute() == Settings::LOGIN_USERNAME
             ? 'required|between:2,255'
             : 'required|email|between:6,255';
         $rules['password'] = 'required|between:4,255';
@@ -67,7 +65,7 @@ class DefaultProvider extends ProviderBase
         Event::fire('mohsin.user.beforeAuthenticate', [$this, $credentials]);
 
         try {
-            $user = Auth::authenticate($credentials, true)->load('avatar');
+            $user = $this->authManager->authenticate($credentials, true)->load('avatar');
             $userArray = $user->toArray();
             $userArray['avatar'] = $user->avatar ? File::localToPublic($user->avatar->getLocalPath()) : null;
             Event::fire('mohsin.user.afterAuthenticate', [$this, $user]);
@@ -85,7 +83,7 @@ class DefaultProvider extends ProviderBase
     public function register()
     {
         try {
-            if (!UserSettings::get('allow_registration', true)) {
+            if (!Settings::get('allow_registration', true)) {
                 return response()->json('registration-disabled', 400);
             }
 
@@ -107,7 +105,7 @@ class DefaultProvider extends ProviderBase
 
             // $rules['package'] = 'required|regex:/^[a-z0-9]*(\.[a-z0-9]+)+[0-9a-z]$/|exists:mohsin_mobile_variants|registration_enabled';
 
-            if ($this->loginAttribute() == UserSettings::LOGIN_USERNAME) {
+            if ($this->loginAttribute() == Settings::LOGIN_USERNAME) {
                 $rules['username'] = 'required|between:2,255';
             }
 
@@ -130,10 +128,10 @@ class DefaultProvider extends ProviderBase
             /*
              * Register user
              */
-            $requireActivation = UserSettings::get('require_activation', true);
-            $automaticActivation = UserSettings::get('activate_mode') == UserSettings::ACTIVATE_AUTO;
-            $userActivation = UserSettings::get('activate_mode') == UserSettings::ACTIVATE_USER;
-            $user = Auth::register($data, $automaticActivation);
+            $requireActivation = Settings::get('require_activation', true);
+            $automaticActivation = Settings::get('activate_mode') == Settings::ACTIVATE_AUTO;
+            $userActivation = Settings::get('activate_mode') == Settings::ACTIVATE_USER;
+            $user = $this->authManager->register($data, $automaticActivation);
 
             /*
              * Activation is by the user, send the email
@@ -160,13 +158,12 @@ class DefaultProvider extends ProviderBase
 
     /*
      * Used internally, ripped off from RainLab.User
-     */
-    /**
+     *
      * Returns the login model attribute.
      */
     public function loginAttribute()
     {
-        return UserSettings::get('login_attribute', UserSettings::LOGIN_EMAIL);
+        return Settings::get('login_attribute', Settings::LOGIN_EMAIL);
     }
 
     protected function sendActivationEmail($user)

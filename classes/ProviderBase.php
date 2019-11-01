@@ -3,6 +3,7 @@
 use Yaml;
 use File;
 use ApplicationException;
+use Mohsin\User\Models\Settings;
 
 /**
  * Represents the generic login provider.
@@ -16,6 +17,11 @@ abstract class ProviderBase
      * @var mixed Extra field configuration for the login provider.
      */
     protected $fieldConfig = null;
+
+    /**
+     * @var October\Rain\Auth\Manager The auth manager instance
+     */
+    protected $authManager;
 
     /**
      * Constructor
@@ -34,6 +40,8 @@ abstract class ProviderBase
             }
             $this->fieldConfig = $config;
         }
+
+        $this->authManager = ProviderManager::instance()->getAvailableAuthManagers()->get(Settings::get('auth_manager', 'backend'))->class::instance();
     }
 
     /**

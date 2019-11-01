@@ -1,15 +1,16 @@
 Mobile Front-end user management for October CMS.
 
-** Update: This plugin now works independent of the Mobile plugin. **
+** Update: This plugin now works independent of the Mobile & RainLab User plugin. **
 
 # About Plugin #
 
-This plugin is similar to the RainLab.User plugin except it’s built to work mainly with mobile front-ends. It exposes RESTful API nodes that enable interaction with the backend thereby allowing users to sign up and login as front-end users.
+This plugin is similar to the RainLab.User plugin except it’s built to work with mobile front-ends. It exposes RESTful API nodes that enable interaction with the backend thereby allowing users to sign up and login.
 
 Tutorial and demonstration of the plugin [here](//www.youtube.com/embed/IkFzSzjoXJ0).
 
 #### Features ####
 * Completely extensible.
+* Select either login via Backend or Frontend (requires [RainLab.User plugin](https://octobercms.com/plugin/rainlab-user)) user models.
 
 #### Coming Soon ####
 * Compatible with the multiple mobile apps feature of the mobile plugin.
@@ -20,9 +21,6 @@ Tutorial and demonstration of the plugin [here](//www.youtube.com/embed/IkFzSzjo
 ### Requirements
 
 * [Mohsin.RESTful plugin](http://octobercms.com/plugin/mohsin-rest).
-* [Rainlab.User plugin](http://octobercms.com/plugin/rainlab-user).
-
-Most of the [RainLab User Documentation](https://octobercms.com/plugin/rainlab-user#documentation) applies to this as well, since it’s extended over that.
 
 ### Client-side Integration ###
 

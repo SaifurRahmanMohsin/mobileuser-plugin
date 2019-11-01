@@ -12,6 +12,31 @@ fields:
         commentAbove: mohsin.user::lang.settings.provider_comment
         type: dropdown
 
+    auth_manager:
+        label: mohsin.user::lang.settings.auth_manager_label
+        commentAbove: mohsin.user::lang.settings.auth_manager_comment
+        type: dropdown
+
+    login_attribute:
+        span: left
+        label: mohsin.user::lang.settings.login_attribute
+        commentAbove: mohsin.user::lang.settings.login_attribute_comment
+        type: radio
+
+    # Require Activation
+    allow_registration:
+        span: right
+        label: mohsin.user::lang.settings.allow_registration
+        comment: mohsin.user::lang.settings.allow_registration_comment
+        type: switch
+
+    # Require Activation
+    require_activation:
+        span: right
+        label: mohsin.user::lang.settings.require_activation
+        comment: mohsin.user::lang.settings.require_activation_comment
+        type: switch
+
     activation_page:
       label: mohsin.user::lang.settings.activation_page_label
       comment: mohsin.user::lang.settings.activation_page_comment

@@ -180,4 +180,28 @@ class ProviderManager
 
         return $providers[$alias];
     }
+
+    /**
+    * Returns a provider based on its unique alias.
+    */
+    public function getAvailableAuthManagers()
+    {
+        $authManagers = [
+            'backend' => (object) [
+                'id'    => 'backend',
+                'name'  => 'Backend',
+                'class' => \Backend\Classes\AuthManager::class
+            ]
+        ];
+
+        if (PluginManager::instance()->exists('RainLab.User')) {
+            $authManagers['frontend'] = (object) [
+                'id'    => 'frontend',
+                'name'  => 'Frontend',
+                'class' => \RainLab\User\Classes\AuthManager::class
+            ];
+        }
+
+        return new Collection($authManagers);
+    }
 }

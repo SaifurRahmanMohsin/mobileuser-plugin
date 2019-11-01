@@ -3,7 +3,6 @@
 use Model;
 use Cms\Classes\Page;
 use Mohsin\User\Classes\ProviderManager;
-use RainLab\User\Models\Settings as UserSettings;
 
 /**
  * Settings Model
@@ -16,26 +15,22 @@ class Settings extends Model
 
     public $settingsFields = 'fields.yaml';
 
-    public function initSettingsData()
-    {
-        $userActivation = UserSettings::get('activate_mode') == UserSettings::ACTIVATE_USER;
-        if ($userActivation) {
-            $this->getFieldConfig()->fields['activation_page']['cssClass'] = '';
-        }
-    }
-
-    public function beforeFetch()
-    {
-        $this -> initSettingsData();
-    }
+    const LOGIN_EMAIL = 'email';
+    const LOGIN_USERNAME = 'username';
 
     public function getProviderOptions()
     {
         $values = [];
         $providers = ProviderManager::instance()->listProviderObjects();
-        foreach($providers as $key => $value)
-          $values[$key] = $value->providerDetails()['name'];
+        foreach ($providers as $key => $value) {
+            $values[$key] = $value->providerDetails()['name'];
+        }
         return $values;
+    }
+
+    public function getAuthManagerOptions()
+    {
+        return ProviderManager::instance()->getAvailableAuthManagers()->lists('name', 'id');
     }
 
     public function getActivationPageOptions($keyValue = null)
@@ -43,4 +38,11 @@ class Settings extends Model
         return Page::sortBy('baseFileName')->lists('title', 'baseFileName');
     }
 
+    public function getLoginAttributeOptions()
+    {
+        return [
+            self::LOGIN_EMAIL => ['rainlab.user::lang.login.attribute_email'],
+            self::LOGIN_USERNAME => ['rainlab.user::lang.login.attribute_username']
+        ];
+    }
 }

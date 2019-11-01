@@ -6,16 +6,14 @@ use Backend;
 use System\Classes\PluginBase;
 use System\Classes\PluginManager;
 use Mohsin\User\Classes\ProviderManager;
-use RainLab\User\Models\User as UserModel;
 use Mohsin\User\Models\Settings as SettingsModel;
-use RainLab\User\Controllers\Users as UsersController;
 
 /**
  * User Plugin Information File
  */
 class Plugin extends PluginBase
 {
-    public $require = ['Mohsin.Rest', 'RainLab.User'];
+    public $require = ['Mohsin.Rest'];
 
     /**
      * Returns information about this plugin.
@@ -39,12 +37,12 @@ class Plugin extends PluginBase
      */
     public function boot()
     {
-        if (PluginManager::instance()->exists('Mohsin.Install')) {
-            UserModel::extend(function ($model) {
+        if (PluginManager::instance()->exists('Mohsin.Install') && PluginManager::instance()->exists('RainLab.User')) {
+            \RainLab\User\Models\User::extend(function ($model) {
                 $model->hasMany['mobileuser_installs'] = ['Mohsin\Mobile\Models\Install'];
             });
 
-            UsersController::extend(function ($controller) {
+            \RainLab\User\Controllers\Users::extend(function ($controller) {
                 $controller->addCss('/plugins/mohsin/user/assets/css/custom.css');
 
                 if (!$controller->isClassExtendedWith('Backend.Behaviors.RelationController')) {
@@ -61,8 +59,8 @@ class Plugin extends PluginBase
                 );
             });
 
-            UsersController::extendFormFields(function ($form, $model, $context) {
-                if (!$model instanceof UserModel) {
+            \RainLab\User\Controllers\Users::extendFormFields(function ($form, $model, $context) {
+                if (!$model instanceof \RainLab\User\Models\User) {
                     return;
                 }
                 if (!$model->exists) {
@@ -101,8 +99,14 @@ class Plugin extends PluginBase
     public function registerPermissions()
     {
         return [
-            'mohsin.user.access_users' => ['tab' => 'Mobile', 'label' => 'rainlab.user::lang.plugin.access_users'],
-            'mohsin.user.access_settings' => ['tab' => 'Mobile', 'label' => 'rainlab.user::lang.plugin.access_settings']
+            'mohsin.user.access_users' => [
+              'tab' => 'Mobile',
+              'label' => 'mohsin.user::lang.plugin.access_users'
+            ],
+            'mohsin.user.access_settings' => [
+              'tab' => 'Mobile',
+              'label' => 'mohsin.user::lang.plugin.access_settings'
+            ]
         ];
     }
 
