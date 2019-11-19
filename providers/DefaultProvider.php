@@ -1,7 +1,6 @@
 <?php namespace Mohsin\User\Providers;
 
 use Mail;
-use Lang;
 use File;
 use Event;
 use Validator;
@@ -71,6 +70,10 @@ class DefaultProvider extends ProviderBase
             Event::fire('mohsin.user.afterAuthenticate', [$this, $user]);
             return response()->json($userArray, 200);
         } catch (AuthException $ex) {
+            $incorrectPassError = "A user was found to match all plain text credentials however hashed credential";
+            if (substr($ex->getMessage(), 0, strlen($incorrectPassError)) === $incorrectPassError) {
+                return response()->json('invalid-password', 400);
+            }
             return response()->json($ex->getMessage(), 400);
         } catch (Exception $ex) {
             return response()->json($ex->getMessage(), 400);
