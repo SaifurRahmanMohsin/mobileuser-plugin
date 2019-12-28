@@ -29,6 +29,10 @@
         'allow_registration_comment' => 'When checked, user registration for this variant through the API is disabled.',
         'registration_disabled' => 'Registration is disabled for this package.'
     ],
+    'login' => [
+        'attribute_email' => 'Email',
+        'attribute_username' => 'Username'
+    ],
     'users' => [
         'mobileuser_installs_label' => 'Mobile User Installs'
     ]

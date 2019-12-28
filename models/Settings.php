@@ -41,8 +41,8 @@ class Settings extends Model
     public function getLoginAttributeOptions()
     {
         return [
-            self::LOGIN_EMAIL => ['rainlab.user::lang.login.attribute_email'],
-            self::LOGIN_USERNAME => ['rainlab.user::lang.login.attribute_username']
+            self::LOGIN_EMAIL => ['mohsin.user::lang.login.attribute_email'],
+            self::LOGIN_USERNAME => ['mohsin.user::lang.login.attribute_username']
         ];
     }
 }
