@@ -1,5 +1,6 @@
 <?php namespace Mohsin\User\Providers;
 
+use Lang;
 use Mail;
 use File;
 use Event;
@@ -22,8 +23,8 @@ class DefaultProvider extends ProviderBase
     public function providerDetails()
     {
         return [
-            'name'        => 'Default Provider',
-            'description' => 'The default login provider that works with RainLab\'s User Plugin'
+            'name'        => 'mohsin.user::lang.provider.default.name',
+            'description' => 'mohsin.user::lang.provider.default.description'
         ];
     }
 
@@ -70,7 +71,7 @@ class DefaultProvider extends ProviderBase
             Event::fire('mohsin.user.afterAuthenticate', [$this, $user]);
             return response()->json($userArray, 200);
         } catch (AuthException $ex) {
-            $incorrectPassError = "A user was found to match all plain text credentials however hashed credential";
+            $incorrectPassError = Lang::get('mohsin.user::lang.provider.default.incorrect_password');
             if (substr($ex->getMessage(), 0, strlen($incorrectPassError)) === $incorrectPassError) {
                 return response()->json('invalid-password', 400);
             }
