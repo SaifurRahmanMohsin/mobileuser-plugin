@@ -1,0 +1,12 @@
+{
+    "name": "mohsin/user-plugin",
+    "description": "Mobile User plugin for OctoberCMS",
+    "type": "october-plugin",
+    "license": "GPLv2",
+    "authors": [
+        {
+            "name": "Saifur Rahman Mohsin",
+            "email": "mohsin92@me.com"
+        }
+    ]
+}
